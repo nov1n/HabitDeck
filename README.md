@@ -4,10 +4,10 @@ HabitDeck is a [Hammerspoon](https://www.hammerspoon.org/) Spoon that integrates
 
 ## Installation
 
-1. Run Beaver Habits application and ensure it's running.
-2. Install [Hammerspoon](https://www.hammerspoon.org/) if you haven't already.
+1. Download and run Beaver Habits.
+2. Download and install Hammerspoon.
 3. Download and unzip [`HabitDeck.spoon`](https://github.com/nov1n/HabitDeck/raw/refs/heads/main/Spoons/HabitDeck.spoon.zip) and place it in `~/.hammerspoon/Spoons/`.
-4. Configure HabitDeck according to the section below.
+4. Follow the [Configuration](#configuration) section below.
 
 ## Configuration
 
