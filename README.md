@@ -17,10 +17,10 @@ Before starting HabitDeck, you need to configure it with your Beaver Habits cred
 local habitDeck = hs.loadSpoon("HabitDeck")
 
 habitDeck:start({
-  endpoint = "http://localhost:7440", -- Beaver Habits API endpoint
-  username = "your_username", -- Beaver Habits username
-  password = "your_password", -- Beaver Habits password
-  habits = { "Read", "Meditate", "Journal" }, -- Three habits to track
+  endpoint = "http://localhost:7440",
+  username = "your_username",
+  password = "your_password",
+  habits = { "Read", "Meditate", "Journal" },
 })
 ```
 
