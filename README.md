@@ -11,7 +11,7 @@ HabitDeck is a [Hammerspoon](https://www.hammerspoon.org/) Spoon that integrates
 
 ## Configuration
 
-Before starting the HabitDeck Spoon, you need to configure it with your Beaver Habits credentials and the habits you want to track. Here's an example configuration:
+Before starting HabitDeck, you need to configure it with your Beaver Habits credentials and the habits you want to track. Here's an example configuration:
 
 ```lua
 local habitDeck = hs.loadSpoon("HabitDeck")
@@ -24,7 +24,7 @@ habitDeck:start({
 })
 ```
 
-Make sure to replace the placeholders with your actual Beaver Habits API endpoint, username, and password, and the names of the habits you want to track (exactly three habits).
+Make sure to replace the placeholders with your actual Beaver Habits endpoint, username, and password, and the names of the habits you want to track (exactly three habits).
 
 ## Usage
 
@@ -38,7 +38,7 @@ Completion statuses are automatically synced with the Beaver Habits every 10 sec
 
 ### `habitDeck:start(config)` → `self`
 
-Starts the HabitDeck Spoon with the provided configuration.
+Starts HabitDeck with the provided configuration.
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Starts the HabitDeck Spoon with the provided configuration.
 
 ### `habitDeck:stop()` → `self`
 
-Stops the HabitDeck Spoon and cleans up resources.
+Stops HabitDeck and cleans up resources.
 
 #### Returns
 
