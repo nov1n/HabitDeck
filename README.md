@@ -4,7 +4,7 @@ HabitDeck is a [Hammerspoon](https://www.hammerspoon.org/) Spoon that integrates
 
 ## Demo
 
-![Demo](demo.mp4)
+![Demo](https://github.com/nov1n/HabitDeck/raw/refs/heads/main/demo.mp4)
 
 ## Installation
 
