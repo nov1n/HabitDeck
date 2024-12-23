@@ -5,7 +5,7 @@
 
 # HabitDeck
 
-HabitDeck is a [Hammerspoon](https://www.hammerspoon.org/) Spoon that integrates with [Beaver Habits](https://github.com/daya0576/beaverhabits) and a [Stream Deck](https://www.elgato.com/ww/en/p/stream-deck-mk2-black) to provide a visual representation and tracking of habits. It displays the completion status of three configurable habits for the last five days on the Stream Deck buttons. Clicking a button toggles the completion status of the corresponding habit for that day, and the state is synchronized with Beaver Habits.
+HabitDeck is a [Hammerspoon](https://www.hammerspoon.org/) Spoon that integrates with [Beaver Habits](https://github.com/daya0576/beaverhabits) and turns your [Stream Deck](https://www.elgato.com/ww/en/p/stream-deck-mk2-black) into an interactive habit tracker. It displays the completion status of three configurable habits for the last five days on the Stream Deck buttons. Clicking a button toggles the completion status of the corresponding habit for that day, and the state is synchronized with Beaver Habits.
 
 ## Installation
 
