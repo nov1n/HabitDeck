@@ -39,32 +39,6 @@ To mark a habit as complete for a specific day, simply click the corresponding b
 
 Completion statuses are automatically synced with the Beaver Habits every 10 seconds in case they are changed by another client (e.g. the web UI).
 
-## API
-
-### `habitDeck:start(config)` → `self`
-
-Starts HabitDeck with the provided configuration.
-
-#### Parameters
-
-- `config` (table): A table containing the configuration for HabitDeck:
-  - `endpoint` (string): The Beaver Habits API endpoint URL.
-  - `username` (string): The Beaver Habits username.
-  - `password` (string): The Beaver Habits password.
-  - `habits` (table): A table containing the names of the habits to track (exactly 3 entries).
-
-#### Returns
-
-- `self` (HabitDeck object): The HabitDeck object.
-
-### `habitDeck:stop()` → `self`
-
-Stops HabitDeck and cleans up resources.
-
-#### Returns
-
-- `self` (HabitDeck object): The HabitDeck object.
-
 ## Contributing
 
 If you find any issues or have suggestions for improvements, feel free to open an issue or submit a pull request on the [GitHub repository](https://github.com/nov1n/HabitDeck/issues).
