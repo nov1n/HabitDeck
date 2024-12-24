@@ -16,7 +16,7 @@ HabitDeck is a [Hammerspoon](https://www.hammerspoon.org/) Spoon that integrates
 
 ## Configuration
 
-Before starting HabitDeck, you need to configure it with your Beaver Habits credentials and the habits you want to track. Here's an example configuration:
+Before starting HabitDeck, you need to configure it with your Beaver Habits credentials and the habits you want to track. An example of the configuration file located at `~/.hammerspoon/init.lua` is shown below:
 
 ```lua
 local habitDeck = hs.loadSpoon("HabitDeck")
