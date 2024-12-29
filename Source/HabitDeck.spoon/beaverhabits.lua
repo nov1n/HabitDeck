@@ -1,165 +1,106 @@
---- BeaverHabits
---- A Spoon for interacting with the Beaver Habits API
-
-local api_base_path = "/api/v1/habits"
-
-local obj = {}
-
-obj.log = hs.logger.new("BeaverHabits", "info")
-
---- BeaverHabits date format
-obj.date_fmt = "%d-%m-%Y"
-
---- BeaverHabits endpoint URL
-obj.endpoint = nil
-
---- BeaverHabits HTTP headers
-obj.headers = {
-  ["accept"] = "application/json",
-  ["Content-Type"] = "application/json",
+---@class BeaverHabits
+---@field api_base_path string Base path for the Beaver Habits API
+---@field date_fmt string Date format string
+---@field headers table HTTP headers
+---@field endpoint string API endpoint URL
+---@field log table Logger instance
+local BeaverHabits = {
+  api_base_path = "/api/v1/habits",
+  date_fmt = "%d-%m-%Y",
+  headers = {
+    ["accept"] = "application/json",
+    ["Content-Type"] = "application/json",
+  },
 }
+BeaverHabits.__index = BeaverHabits
 
---- BeaverHabits:http_request(method, path, body, headers)
---- Method
---- Sends an HTTP request to the Beaver Habits API
----
---- Parameters:
----  * method  - The HTTP method (GET, POST, PUT, DELETE)
----  * path    - The API endpoint path
----  * body    - The request body (optional)
----  * headers - Additional HTTP headers (optional)
----
---- Returns:
----  * The response body (decoded from JSON)
----  * The HTTP status code
----  * The response headers
-function obj:http_request(method, path, body, headers)
-  if headers == nil then headers = obj.headers end
-  local url = obj.endpoint .. path
-  local status_code, res_body, response_headers = hs.http.doRequest(url, method, body, headers)
+---Creates a new BeaverHabits client instance
+---@param config Config Configuration for the client
+---@return BeaverHabits client The new client instance or nil if login fails
+function BeaverHabits.new(config)
+  local self = setmetatable({}, BeaverHabits)
+  self.log = hs.logger.new("BeaverHabits", "info")
+  self.endpoint = config.endpoint
 
-  if status_code >= 400 then
-    self.log.e(string.format("HTTP Error %d: %s", status_code, res_body))
-    return nil, status_code
+  self:login(config.username, config.password)
+  return self
+end
+
+---Sends an HTTP request to the Beaver Habits API
+---@param method string The HTTP method (GET, POST, PUT, DELETE)
+---@param path string The API endpoint path
+---@param body string|nil The request body (optional)
+---@param headers table|nil Additional HTTP headers (optional)
+---@return table|nil response The response body (decoded from JSON)
+---@return string|nil error Error information if request fails
+function BeaverHabits:_http_request(method, path, body, headers)
+  if headers == nil then
+    headers = self.headers
+  end
+  local url = self.endpoint .. path
+  local status_code, res_body, _ = hs.http.doRequest(url, method, body, headers)
+
+  if status_code < 200 or status_code >= 300 then
+    local message
+    if status_code == 0 then
+      message = "Network error"
+      if res_body then
+        message = message .. ": " .. tostring(res_body)
+      end
+    else
+      message = "HTTP error " .. tostring(status_code)
+      if res_body then
+        message = message .. ": " .. tostring(res_body)
+      end
+    end
+    return nil, "Request to '" .. url .. "' failed. Cause: " .. message
   end
 
-  return hs.json.decode(res_body), status_code, response_headers
+  return hs.json.decode(res_body), nil
 end
 
---- BeaverHabits.get_client(endpoint, username, password)
---- Function
---- Creates a new BeaverHabits client
----
---- Parameters:
----  * endpoint - The Beaver Habits API endpoint URL
----  * username - The Beaver Habits username
----  * password - The Beaver Habits password
----
---- Returns:
----  * The BeaverHabits object
-function obj.get_client(endpoint, username, password)
-  obj.endpoint = endpoint
-  obj:login(username, password)
-  return obj
-end
-
---- BeaverHabits:login(username, password)
---- Method
---- Authenticates with the Beaver Habits API
----
---- Parameters:
----  * username - The Beaver Habits username
----  * password - The Beaver Habits password
-function obj:login(username, password)
+---Authenticates with the Beaver Habits API
+---@param username string The Beaver Habits username
+---@param password string The Beaver Habits password
+---@return string? error Error information if login fails
+function BeaverHabits:login(username, password)
   local body = "grant_type=password&username=" .. username .. "&password=" .. password
   local login_headers = {
     ["Content-Type"] = "application/x-www-form-urlencoded",
     ["accept"] = "application/json",
   }
-  local response_body, _ = obj:http_request("POST", "/auth/login", body, login_headers)
-  obj.headers["Authorization"] = "Bearer " .. response_body.access_token
-end
-
---- BeaverHabits:get_habit_list()
---- Method
---- Retrieves the list of habits from the Beaver Habits API
----
---- Returns:
----  * The list of habits
-function obj:get_habit_list()
-  local response_body = obj:http_request("GET", api_base_path)
-  return response_body
-end
-
---- BeaverHabits:get_habit_details(habit_id)
---- Method
---- Retrieves the details of a specific habit
----
---- Parameters:
----  * habit_id - The ID of the habit
----
---- Returns:
----  * The habit details
-function obj:get_habit_details(habit_id)
-  local response_body, _ = obj:http_request("GET", api_base_path .. "/" .. habit_id)
-  return response_body
-end
-
---- BeaverHabits:get_habits_meta()
---- Method
---- Retrieves the meta information for habits
----
---- Returns:
----  * The habits meta information
-function obj:get_habits_meta()
-  local response_body, _ = obj:http_request("GET", api_base_path .. "/meta")
-  return response_body
-end
-
---- BeaverHabits:put_habits_meta(body)
---- Method
---- Updates the meta information for habits
----
---- Parameters:
----  * body - A table containing the new meta information
----
---- Returns:
----  * The updated habits meta information (if successful)
----  * nil (if unsuccessful)
-function obj:put_habits_meta(body)
-  local request_body = nil
-  if type(body) == "table" then
-    request_body = hs.json.encode(body)
-  else
-    print("Error: 'body' argument must be a table")
-    return nil
+  local response_body, err = self:_http_request("POST", "/auth/login", body, login_headers)
+  if err then
+    error(err)
   end
-
-  local response_body, status_code = obj:http_request("PUT", api_base_path .. "/meta", request_body)
-
-  if status_code == 200 then
-    return response_body
-  else
-    return nil
+  if not response_body then
+    error("Could not parse response body of the login request")
   end
+  self.headers["Authorization"] = "Bearer " .. response_body.access_token
 end
 
---- BeaverHabits:get_habit_records(habit_id)
---- Method
---- Retrieves the completion records for a habit
----
---- Parameters:
----  * habit_id - The ID of the habit
----
---- Returns:
----  * The habit completion records
-function obj:get_habit_records(habit_id)
-  local days = 5
-  local path = api_base_path .. "/" .. habit_id .. "/completions"
+---Retrieves the list of habits from the Beaver Habits API
+---@return table|nil habits List of habits or nil if request fails
+---@return string|nil error Error information if request fails
+function BeaverHabits:get_habit_list()
+  local response_body, err = self:_http_request("GET", self.api_base_path)
+  if err then
+    return nil, err
+  end
+  return response_body, nil
+end
+
+---Retrieves the completion records for a habit
+---@param habit_id string The ID of the habit
+---@param days integer The number of days to get records for
+---@return table|nil records Habit completion records or nil if request fails
+---@return string? error string if request fails
+function BeaverHabits:get_habit_records(habit_id, days)
+  local path = self.api_base_path .. "/" .. habit_id .. "/completions"
   local date_start = os.date("%d-%m-%Y", os.time() - (days - 1) * 24 * 60 * 60)
   local date_end = os.date("%d-%m-%Y")
   local params = {
-    date_fmt = obj.date_fmt,
+    date_fmt = self.date_fmt,
     date_start = date_start,
     date_end = date_end,
     sort = "asc",
@@ -173,37 +114,30 @@ function obj:get_habit_records(habit_id)
 
   local full_path = path .. query_params
 
-  local response_body, status_code = obj:http_request("GET", full_path)
-
-  if status_code == 200 then
-    return response_body
-  else
-    return nil
+  local response_body, err = self:_http_request("GET", full_path)
+  if err then
+    return nil, err
   end
+  return response_body, nil
 end
 
---- BeaverHabits:post_habit_record(habit_id, date, done)
---- Method
---- Creates a new completion record for a habit
----
---- Parameters:
----  * habit_id - The ID of the habit
----  * date     - The date of the completion record
----  * done     - A boolean indicating whether the habit was completed
----
---- Returns:
----  * A boolean indicating whether the record was created successfully
-function obj:post_habit_record(habit_id, date, done)
+---Creates a new completion record for a habit
+---@param habit_id string The ID of the habit
+---@param date string The date of the completion record
+---@param done boolean Whether the habit was completed
+---@return string? error string if request fails
+function BeaverHabits:post_habit_record(habit_id, date, done)
   local body = {
     date_fmt = self.date_fmt,
     date = date,
     done = done,
   }
 
-  local path = api_base_path .. "/" .. habit_id .. "/completions"
-  local response_body, _ = obj:http_request("POST", path, hs.json.encode(body))
-
-  return response_body.done
+  local path = self.api_base_path .. "/" .. habit_id .. "/completions"
+  local _, err = self:_http_request("POST", path, hs.json.encode(body))
+  if err then
+    return err
+  end
 end
 
-return obj
+return BeaverHabits
