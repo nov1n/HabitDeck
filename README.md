@@ -1,7 +1,4 @@
-<div align="center">
-  <img src="https://github.com/nov1n/HabitDeck/raw/refs/heads/main/demo.gif" alt="Demo">
-</div>
-
+https://github.com/user-attachments/assets/d5784d88-bdd9-49ed-896f-bf9c13e92ff1
 
 # HabitDeck
 
