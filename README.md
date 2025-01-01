@@ -1,4 +1,4 @@
-<[https://github.com/user-attachments/assets/d5784d88-bdd9-49ed-896f-bf9c13e92ff1](https://github.com/nov1n/HabitDeck/blob/main/assets/demo.mp4)>
+<https://github.com/nov1n/HabitDeck/raw/refs/heads/main/assets/demo.mp4>
 
 # HabitDeck
 
