@@ -17,13 +17,13 @@
 ---@field log table Logger instance
 ---@field client table Beaver API client instance
 ---@field state table State information for habits
----@field timer table? Timer instance for syncing
----@field stream_deck table? Stream Deck instance
+---@field timer table Timer instance for syncing
+---@field streamdeck table Stream Deck instance
 ---@field is_done_image table Image for completed habits
 ---@field not_done_image table Image for incomplete habits
 ---@field sync_interval number Sync interval in seconds
----@field stream_deck_rows number Number of Stream Deck rows
----@field stream_deck_cols number Number of Stream Deck columns
+---@field streamdeck_rows number Number of Stream Deck rows
+---@field streamdeck_cols number Number of Stream Deck columns
 ---@field enable_notifications boolean Whether to show a Desktop notification when updating a habit
 
 local beaver = dofile(hs.spoons.resourcePath("beaverhabits.lua"))
@@ -40,11 +40,11 @@ obj.log = hs.logger.new("HabitDeck", "info")
 obj.client = nil
 obj.state = {}
 obj.timer = nil
-obj.stream_deck = nil
+obj.streamdeck = nil
+obj.rows = nil
+obj.cols = nil
 obj.enable_notifications = true
 obj.sync_interval = 10 -- Sync interval in seconds
-obj.stream_deck_rows = 3
-obj.stream_deck_cols = 5
 obj.visuals = {
   image = {
     [true] = hs.image.imageFromPath(hs.spoons.resourcePath("images/square-check.regular.png")),
@@ -70,13 +70,10 @@ function obj:start(config)
     self[key] = value
   end
 
-  -- Validate self
-  local n_habits = self.stream_deck_rows
-  assert(#self.habits == n_habits, "'habits' key must have exactly .. " .. n_habits .. " entries")
   self.client = beaver.new(config)
 
   hs.streamdeck.init(function(...)
-    self:_handle_stream_deck(...)
+    self:_handle_streamdeck(...)
   end)
   return self
 end
@@ -84,7 +81,7 @@ end
 ---Stops the HabitDeck spoon and cleans up resources
 ---@return HabitDeck self The HabitDeck instance
 function obj:stop()
-  self.stream_deck = nil
+  self.streamdeck = nil
   if self.timer then
     self.timer:stop()
     self.timer = nil
@@ -124,19 +121,19 @@ function obj:_sync_state()
   end
 
   -- Create state list corresponding to the indexes of StreamDeck buttons
-  for row = 1, self.stream_deck_rows do
+  for row = 1, self.rows do
     local habit_name = self.habits[row]
     local habit_id = names_to_ids[habit_name]
     if not habit_id then
       return "Habit '" .. habit_name .. "' does not exist."
     end
-    local records, err = self.client:get_habit_records(habit_id, self.stream_deck_cols)
+    local records, err = self.client:get_habit_records(habit_id, self.cols)
     if err then
       return err
     end
-    for col = 1, self.stream_deck_cols do
-      local index = (row - 1) * self.stream_deck_cols + col
-      local day_offset = self.stream_deck_cols - col
+    for col = 1, self.cols do
+      local index = (row - 1) * self.cols + col
+      local day_offset = self.cols - col
       local date = os.date("%d-%m-%Y", os.time() - day_offset * 24 * 60 * 60)
       local is_done = hs.fnutils.contains(records, date)
       self.state[index] = {
@@ -163,22 +160,22 @@ end
 ---@param logger hs.logger The logger with which to log the data
 ---Logs a string representation of the habit data to the supplied logger
 function obj:_print_state(logger)
-  logger("┌" .. string.rep("────", self.stream_deck_cols - 1) .. "───┐")
+  logger("┌" .. string.rep("────", self.cols - 1) .. "───┐")
 
   local title = "Stream Deck"
-  local centered_title = center_text(title, self.stream_deck_cols, 4) -- each column is 4 characters wide
+  local centered_title = center_text(title, self.cols, 4) -- each column is 4 characters wide
   logger("│" .. centered_title .. "│")
-  logger("├" .. string.rep("───┬", self.stream_deck_cols - 1) .. "───┤")
+  logger("├" .. string.rep("───┬", self.cols - 1) .. "───┤")
 
   -- Print state grid
-  local mid_border = "├" .. string.rep("───┼", self.stream_deck_cols - 1) .. "───┤"
+  local mid_border = "├" .. string.rep("───┼", self.cols - 1) .. "───┤"
   local row_str = "│"
   local col_idx = 1
   for _, habit in ipairs(self.state) do
     row_str = row_str .. " " .. self.visuals.ascii[habit.is_done] .. " │"
 
     col_idx = col_idx + 1
-    if col_idx > self.stream_deck_cols then
+    if col_idx > self.cols then
       logger(row_str)
       row_str = "│"
       col_idx = 1
@@ -188,14 +185,14 @@ function obj:_print_state(logger)
       end
     end
   end
-  logger("└" .. string.rep("───┴", self.stream_deck_cols - 1) .. "───┘")
+  logger("└" .. string.rep("───┴", self.cols - 1) .. "───┘")
 end
 
 ---@private
 ---Syncs the Stream Deck button images with the habit state
 function obj:_sync_images()
-  for i = 1, self.stream_deck_rows * self.stream_deck_cols do
-    self.stream_deck:setButtonImage(i, self.visuals.image[self.state[i].is_done])
+  for i = 1, self.rows * self.cols do
+    self.streamdeck:setButtonImage(i, self.visuals.image[self.state[i].is_done])
   end
 
   self:_print_state(self.log.i)
@@ -236,15 +233,18 @@ end
 ---Handles Stream Deck connection and disconnection events
 ---@param is_connected boolean Whether the Stream Deck is connected
 ---@param deck table? The Stream Deck object (if connected)
-function obj:_handle_stream_deck(is_connected, deck)
+function obj:_handle_streamdeck(is_connected, deck)
   if is_connected then
-    self.log.i("Stream Deck connected")
-    self.stream_deck = deck
-    obj:_sync()
+    self.log.i("Stream Deck connected: " .. string.gsub(hs.inspect(deck), "<userdata %d+> %-%- hs%.streamdeck: ", ""))
+    self.streamdeck = deck
+    self.cols, self.rows = self.streamdeck:buttonLayout()
+    assert(#self.habits == self.rows, "'habits' key must have exactly " .. self.rows .. " names")
+
+    self:_sync()
     self.timer = hs.timer.doEvery(self.sync_interval, function()
       self:_sync()
     end)
-    self.stream_deck:buttonCallback(function(...)
+    self.streamdeck:buttonCallback(function(...)
       self:_button_callback(...)
     end)
   else

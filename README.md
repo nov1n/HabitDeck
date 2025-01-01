@@ -28,6 +28,8 @@ habitDeck:start({
 
 Make sure to replace the placeholders with your actual Beaver Habits endpoint, username, and password, and the names of the habits you want to track (exactly three habits).
 
+[!CAUTION] I have not tested with other models like the Stream Deck XL but it _should_ work. In that case you have to specify 4 habits in the configuration. If you have one please let me know if it works.
+
 ## Usage
 
 After reloading Hammerspoon, it will automatically connect to your Stream Deck and display the completion status of the configured habits for the last five days. Each button represents a day, with the rightmost button being the current day and the leftmost button being four days ago.
