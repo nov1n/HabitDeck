@@ -26,7 +26,7 @@ habitDeck:start({
 })
 ```
 
-Make sure to replace the placeholders with your actual Beaver Habits endpoint, username, and password, and the names of the habits you want to track (exactly three habits).
+Make sure to replace the placeholders with your actual Beaver Habits endpoint, username, and password, and the names of the habits you want to track. The number of habits should match the number of rows on your Stream Deck model.
 
 ## Supported models
 
