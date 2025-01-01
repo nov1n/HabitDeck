@@ -42,11 +42,19 @@ obj.state = {}
 obj.timer = nil
 obj.stream_deck = nil
 obj.enable_notifications = true
-obj.is_done_image = hs.image.imageFromPath(hs.spoons.resourcePath("images/square-check.regular.png"))
-obj.not_done_image = hs.image.imageFromPath(hs.spoons.resourcePath("images/square.regular.png"))
 obj.sync_interval = 10 -- Sync interval in seconds
 obj.stream_deck_rows = 3
 obj.stream_deck_cols = 5
+obj.visuals = {
+  image = {
+    [true] = hs.image.imageFromPath(hs.spoons.resourcePath("images/square-check.regular.png")),
+    [false] = hs.image.imageFromPath(hs.spoons.resourcePath("images/square.regular.png")),
+  },
+  ascii = {
+    [true] = "x",
+    [false] = " ",
+  },
+}
 
 ---Starts the HabitDeck spoon with the provided configuration
 ---@param config Config Configuration settings
@@ -135,19 +143,13 @@ function obj:_sync_state()
   end
 end
 
----@private
----Returns the appropriate image for the habit completion state
----@param is_done boolean Whether the habit is completed
----@return table image hs.image object representing the appropriate image
-function obj:_get_image(is_done)
-  return is_done and self.is_done_image or self.not_done_image
 end
 
 ---@private
 ---Syncs the Stream Deck button images with the habit state
 function obj:_sync_images()
   for i = 1, self.stream_deck_rows * self.stream_deck_cols do
-    self.stream_deck:setButtonImage(i, self:_get_image(self.state[i].is_done))
+    self.stream_deck:setButtonImage(i, self.visuals.image[self.state[i].is_done])
   end
 end
 
