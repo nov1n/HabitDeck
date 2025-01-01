@@ -1,4 +1,4 @@
-<https://github.com/nov1n/HabitDeck/raw/refs/heads/main/assets/demo.mp4>
+<https://github.com/user-attachments/assets/c847edf9-e9e0-45b6-902f-b5f21da5b4f5>
 
 # HabitDeck
 
@@ -28,7 +28,14 @@ habitDeck:start({
 
 Make sure to replace the placeholders with your actual Beaver Habits endpoint, username, and password, and the names of the habits you want to track (exactly three habits).
 
-[!CAUTION] I have not tested with other models like the Stream Deck XL but it _should_ work. In that case you have to specify 4 habits in the configuration. If you have one please let me know if it works.
+## Supported models
+
+> [!NOTE]
+> This project has been tested on the Stream Deck (Original V2) model. If you have a different model, please share your experience so that I can update the compatibility information in the README.
+
+Currently, the following models have been confirmed to work:
+
+- Stream Deck (Original V2)
 
 ## Usage
 
