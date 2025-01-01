@@ -60,14 +60,20 @@ obj.visuals = {
 ---@param config Config Configuration settings
 ---@return HabitDeck self The HabitDeck instance
 function obj:start(config)
+  -- Ensure user config contains required keys
   for _, key in ipairs({ "username", "password", "endpoint", "habits" }) do
     assert(config[key], string.format("config invalid, key '%s' is missing", key))
   end
-  assert(#config.habits == 3, "'habits' key must have exactly 3 entries")
-  self.client = beaver.new(config)
+
+  -- Merge defaults with user config
   for key, value in pairs(config) do
     self[key] = value
   end
+
+  -- Validate self
+  local n_habits = self.stream_deck_rows
+  assert(#self.habits == n_habits, "'habits' key must have exactly .. " .. n_habits .. " entries")
+  self.client = beaver.new(config)
 
   hs.streamdeck.init(function(...)
     self:_handle_stream_deck(...)
@@ -101,7 +107,7 @@ end
 
 ---@private
 ---Syncs the habit state with the Beaver Habits API
----@return string error string if request fails
+---@return string? error string if request fails
 function obj:_sync_state()
   -- Update mapping of habit names to ids
   local names_to_ids = {}
@@ -143,6 +149,46 @@ function obj:_sync_state()
   end
 end
 
+local function center_text(text, cols, col_size)
+  text = (#text % 2 == 0) and text or " " .. text -- pad the text if it has odd length
+  local width = cols * col_size
+  local pad_length = (width - #text) / 2
+  local pad_left = string.rep(" ", math.floor(pad_length))
+  local pad_right = string.rep(" ", math.ceil(pad_length) - 1)
+  return pad_left .. text .. pad_right
+end
+
+---@private
+---@diagnostic disable-next-line: undefined-doc-name
+---@param logger hs.logger The logger with which to log the data
+---Logs a string representation of the habit data to the supplied logger
+function obj:_print_state(logger)
+  logger("┌" .. string.rep("────", self.stream_deck_cols - 1) .. "───┐")
+
+  local title = "Stream Deck"
+  local centered_title = center_text(title, self.stream_deck_cols, 4) -- each column is 4 characters wide
+  logger("│" .. centered_title .. "│")
+  logger("├" .. string.rep("───┬", self.stream_deck_cols - 1) .. "───┤")
+
+  -- Print state grid
+  local mid_border = "├" .. string.rep("───┼", self.stream_deck_cols - 1) .. "───┤"
+  local row_str = "│"
+  local col_idx = 1
+  for _, habit in ipairs(self.state) do
+    row_str = row_str .. " " .. self.visuals.ascii[habit.is_done] .. " │"
+
+    col_idx = col_idx + 1
+    if col_idx > self.stream_deck_cols then
+      logger(row_str)
+      row_str = "│"
+      col_idx = 1
+
+      if habit ~= self.state[#self.state] then
+        logger(mid_border)
+      end
+    end
+  end
+  logger("└" .. string.rep("───┴", self.stream_deck_cols - 1) .. "───┘")
 end
 
 ---@private
@@ -151,6 +197,8 @@ function obj:_sync_images()
   for i = 1, self.stream_deck_rows * self.stream_deck_cols do
     self.stream_deck:setButtonImage(i, self.visuals.image[self.state[i].is_done])
   end
+
+  self:_print_state(self.log.i)
 end
 
 ---@private
