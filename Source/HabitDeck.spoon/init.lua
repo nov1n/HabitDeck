@@ -51,7 +51,7 @@ obj.visuals = {
     [false] = hs.image.imageFromPath(hs.spoons.resourcePath("images/square.regular.png")),
   },
   ascii = {
-    [true] = "x",
+    [true] = "✔",
     [false] = " ",
   },
 }
@@ -90,6 +90,22 @@ function obj:stop()
 end
 
 ---@private
+function obj:_notify_on_changed(old_state)
+  for i, state in ipairs(self.state) do
+    if old_state[i] and state.is_done ~= old_state[i].is_done then
+      self:_notify(
+        string.format(
+          "Habit '%s' on %s changed to %s.",
+          state.habit_name,
+          state.date,
+          state.is_done and "done" or "not done"
+        )
+      )
+    end
+  end
+end
+
+---@private
 ---Syncs the habit state and updates the Stream Deck buttons
 function obj:_sync()
   self.log.i("Syncing state with BeaverHabits...")
@@ -106,6 +122,8 @@ end
 ---Syncs the habit state with the Beaver Habits API
 ---@return string? error string if request fails
 function obj:_sync_state()
+  local old_state = hs.fnutils.copy(self.state)
+
   -- Update mapping of habit names to ids
   local names_to_ids = {}
   for _, name in ipairs(self.habits) do
@@ -144,6 +162,8 @@ function obj:_sync_state()
       }
     end
   end
+
+  self:_notify_on_changed(old_state)
 end
 
 local function center_text(text, cols, col_size)
@@ -199,6 +219,14 @@ function obj:_sync_images()
 end
 
 ---@private
+function obj:_notify(message)
+  self.log.i(message)
+  if self.enable_notifications then
+    hs.notify.new({ title = "HabitDeck", informativeText = message }):send()
+  end
+end
+
+---@private
 ---Callback function for Stream Deck button presses
 ---@param _ any Unused parameter
 ---@param index number The index of the pressed button (1-based)
@@ -215,17 +243,10 @@ function obj:_button_callback(_, index, is_pressed)
 
   -- Send notificatioon if enabled
   habit.is_done = not habit.is_done
-  update_message = "Marked '"
-    .. habit.habit_name
-    .. "' on "
-    .. habit.date
-    .. " as "
-    .. (habit.is_done and "done" or "not done")
-    .. "."
-  self.log.i(update_message)
-  if self.enable_notifications then
-    hs.notify.new({ title = "HabitDeck", informativeText = update_message }):send()
-  end
+
+  self:_notify(
+    string.format("Marked '%s' on %s as %s.", habit.habit_name, habit.date, habit.is_done and "done" or "not done")
+  )
   self:_sync_images()
 end
 
