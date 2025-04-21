@@ -71,7 +71,8 @@ function BeaverHabits:login(username, password)
   }
   local response_body, err = self:_http_request("POST", "/auth/login", body, login_headers)
   if err then
-    error(err)
+    self.log.w("Login failed: " .. err)
+    return err
   end
   if not response_body then
     error("Could not parse response body of the login request")
