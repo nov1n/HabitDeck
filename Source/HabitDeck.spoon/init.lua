@@ -215,7 +215,7 @@ function obj:_sync_images()
     self.streamdeck:setButtonImage(i, self.visuals.image[self.state[i].is_done])
   end
 
-  self:_print_state(self.log.i)
+  self:_print_state(self.log.d)
 end
 
 ---@private
